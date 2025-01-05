@@ -21,7 +21,6 @@ entity main is
       clk_main_i              : in  std_logic;
       reset_soft_i            : in  std_logic;
       reset_hard_i            : in  std_logic;
-      pause_i                 : in  std_logic;
 
       ioctl_download          : in  std_logic;
       -- MiSTer core main clock speed:
@@ -72,15 +71,14 @@ entity main is
       dn_data_i               : in  std_logic_vector(15 downto 0);
       dn_wr_i                 : in  std_logic;
 
-      
-      osm_control_i           : in  std_logic_vector(255 downto 0)
+      osm_control_i           : in  std_logic_vector(255 downto 0);
+      qnice_dev_id_o          : out std_logic_vector(15 downto 0)
    );
 end entity main;
 
 architecture synthesis of main is
 
 signal keyboard_n        : std_logic_vector(79 downto 0);
-signal pause_cpu         : std_logic;
 signal status            : signed(31 downto 0);
 signal flip_screen       : std_logic;
 signal flip              : std_logic := '0';
@@ -102,13 +100,16 @@ signal hs_data_in       : std_logic_vector(7 downto 0);
 signal hs_data_out      : std_logic_vector(7 downto 0);
 signal hs_write_enable  : std_logic;
 
-signal hs_pause         : std_logic;
 signal options          : std_logic_vector(1 downto 0);
 signal self_test        : std_logic;
 
-constant C_MENU_OSMPAUSE     : natural := 2;
-constant C_MENU_OSMDIM       : natural := 3;
-constant C_MENU_FLIP         : natural := 9;
+-- 
+signal title_reg         : std_logic_vector(7 downto 0) := (others => '0'); 
+signal title             : std_logic_vector(7 downto 0);
+signal ioctl_index       : std_logic_vector(7 downto 0);
+
+constant C_MENU_OSMDIM   : natural := 3;
+constant C_MENU_FLIP     : natural := 9;
 
 -- Game player inputs
 constant m65_1             : integer := 56; --Player 1 Start
@@ -126,62 +127,96 @@ constant m65_x             : integer := 23; --P1 Push 2
 constant m65_c             : integer := 20; --P1 Push 3
 
 
--- Pause, credit button & test mode
-constant m65_p             : integer := 41; --Pause button
+-- Credit button & test mode
 constant m65_s             : integer := 13; --Service 1
 constant m65_capslock      : integer := 72; --Service Mode
 constant m65_help          : integer := 67; --Help key
 
+-- inputs
+signal p1                : std_logic_vector(7 downto 0);
+signal p1_push2          : std_logic := not keyboard_n(m65_x);
+signal ssw               : std_logic := not keyboard_n(m65_s);
+signal coin1             : std_logic := not keyboard_n(m65_5);
+signal p1_push1          : std_logic := not keyboard_n(m65_z);
+signal p1_down           : std_logic := not keyboard_n(m65_vert_crsr);
+signal p1_up             : std_logic := not keyboard_n(m65_up_crsr);
+signal p1_left           : std_logic := not keyboard_n(m65_left_crsr);
+signal p1_right          : std_logic := not keyboard_n(m65_horz_crsr);
+
+signal p2                : std_logic_vector(7 downto 0);
+signal p2_push2          : std_logic := not keyboard_n(m65_x);
+signal p2_sel            : std_logic := not keyboard_n(m65_2);
+signal p1_sel            : std_logic := not keyboard_n(m65_1);
+signal p2_push1          : std_logic := not keyboard_n(m65_z);
+signal p2_down           : std_logic := not keyboard_n(m65_vert_crsr);
+signal p2_up             : std_logic := not keyboard_n(m65_up_crsr);
+signal p2_left           : std_logic := not keyboard_n(m65_left_crsr);
+signal p2_right          : std_logic := not keyboard_n(m65_horz_crsr);
+
+signal p3                : std_logic_vector(7 downto 0);
+signal kw                : std_logic := not keyboard_n(m65_s);
+signal coin2             : std_logic := not keyboard_n(m65_6);
+signal p2_push3          : std_logic := not keyboard_n(m65_c);
+signal p1_push3          : std_logic := not keyboard_n(m65_c);
+
+type sw_array is array (0 to 7) of std_logic_vector(7 downto 0); 
+signal sw_reg : sw_array;
+signal sw : std_logic_vector(7 downto 0);
 
 begin
-
     audio_left_o(15) <= not audio(15);
     audio_left_o(14 downto 0) <= signed(audio(14 downto 0));
     audio_right_o(15) <= not audio(15);
     audio_right_o(14 downto 0) <= signed(audio(14 downto 0));
-   
-    options(0) <= osm_control_i(C_MENU_OSMPAUSE);
-    options(1) <= osm_control_i(C_MENU_OSMDIM);
+  
     flip_screen <= osm_control_i(C_MENU_FLIP);
-    
- 
+   
+   
+    p1 <= p1_push2 & ssw & coin1 & p1_push1 & p1_left & "0" & p1_right & "0"; 
+    p2 <= p2_push2 & p2_sel & p1_sel & p2_push1 & p2_left & "0" & p2_right & "0"; 
+    p3 <= "0000" & kw & coin2 & p2_push3 & p1_push3;
+   
+
     i_u_core : entity work.core
     port map (
     
-    clk_sys           => clk_main_i,               -- 36mhz
+    clk_sys           => clk_main_i,                    -- 36mhz
     reset             => reset,
     
-    p1(7)             => keyboard_n(m65_x),        -- p1_push2
-    p1(6)             => '0',                      -- ssw / service.
-    p1(5)             => keyboard_n(m65_5),        -- coin1
-    p1(4)             => keyboard_n(m65_z),        -- p1_push1
-    p1(3)             => keyboard_n(m65_left_crsr),-- p1_left
-    p1(2)             => '0',                      -- unused
-    p1(1)             => keyboard_n(m65_horz_crsr),-- p1_right
-    p1(0)             => '0',                      -- unused
+    p1(7)             => not keyboard_n(m65_x),         -- p1_push2
+    p1(6)             => '0',                           -- ssw / service.
+    p1(5)             => not keyboard_n(m65_5),         -- coin1
+    p1(4)             => not keyboard_n(m65_z),         -- p1_push1
+    p1(3)             => not keyboard_n(m65_left_crsr), -- p1_left
+    p1(2)             => '0',                           -- unused
+    p1(1)             => not keyboard_n(m65_horz_crsr), -- p1_right
+    p1(0)             => '0',                           -- unused
+   -- p1               => p1,
     
-    p2(7)             => keyboard_n(m65_x),        -- p2_push2 / cocktail
-    p2(6)             => keyboard_n(m65_2),        -- p2_sel
-    p2(5)             => keyboard_n(m65_1),        -- p1_sel
-    p2(4)             => keyboard_n(m65_z),        -- p2_push1 / cocktail
-    p2(3)             => keyboard_n(m65_left_crsr),-- p2_left
-    p2(2)             => '0',                      -- unused
-    p2(1)             => keyboard_n(m65_horz_crsr),-- p2_right
-    p2(0)             => '0',                      -- unused
+    p2(7)             => not keyboard_n(m65_x),         -- p2_push2 / cocktail
+    p2(6)             => not keyboard_n(m65_2),         -- p2_sel
+    p2(5)             => not keyboard_n(m65_1),         -- p1_sel
+    p2(4)             => not keyboard_n(m65_z),         -- p2_push1 / cocktail
+    p2(3)             => not keyboard_n(m65_left_crsr), -- p2_left
+    p2(2)             => '0',                           -- unused
+    p2(1)             => not keyboard_n(m65_horz_crsr), -- p2_right
+    p2(0)             => '0',                           -- unused
+    --p2                => p2,
     
-    p3(7)             => '0',                      -- unused
-    p3(6)             => '0',                      -- unused
-    p3(5)             => '0',                      -- unused
-    p3(4)             => '0',                      -- unused
-    p3(3)             => keyboard_n(m65_s),        -- kw / is this service button ?
-    p3(2)             => keyboard_n(m65_6),        -- coin2
-    p3(1)             => keyboard_n(m65_c),        -- p2_push3 / cocktail
-    p3(0)             => keyboard_n(m65_c),        -- p1_push3
+    p3(7)             => '0',                           -- unused
+    p3(6)             => '0',                           -- unused
+    p3(5)             => '0',                           -- unused
+    p3(4)             => '0',                           -- unused
+    p3(3)             => not keyboard_n(m65_s),         -- kw / is this service button ?
+    p3(2)             => not keyboard_n(m65_6),         -- coin2
+    p3(1)             => not keyboard_n(m65_c),         -- p2_push3 / cocktail
+    p3(0)             => not keyboard_n(m65_c),         -- p1_push3
+    --p3                => p3,
     
     dsw               => dsw_a_i,
    
-    dn_clk            => dn_clk_i,                 -- rom loading.
-    ioctl_index       => (others => '0'),          -- unused
+    dn_clk            => dn_clk_i,                      -- rom loading.
+    ioctl_index       => ioctl_index,                   
     ioctl_download    => ioctl_download,
     ioctl_wr          => dn_wr_i,
     ioctl_addr        => dn_addr_i,                

@@ -147,7 +147,7 @@ constant C_CRTROMS_MAN           : crtrom_buf_array := ( x"EEEE", x"EEEE",
 constant C_DEV_BP_CPU_ROM1           : std_logic_vector(15 downto 0) := x"0100";     -- CPU1 ROM 
 constant C_DEV_BP_CPU_ROM2           : std_logic_vector(15 downto 0) := x"0101";     -- CPU2 ROM 
 constant C_DEV_BP_CPU_ROM3           : std_logic_vector(15 downto 0) := x"0102";     -- CPU3 ROM 
-constant C_DEV_BP_CPU_ROM4           : std_logic_vector(15 downto 0) := x"0103";     -- CPU4 ROM 
+constant C_DEV_BP_CPU_ROM4           : std_logic_vector(15 downto 0) := x"0103";     -- CPU4 ROM
 constant C_DEV_BP_FG1_GFX1           : std_logic_vector(15 downto 0) := x"0104";     -- FG GFX 1
 constant C_DEV_BP_FG2_GFX1           : std_logic_vector(15 downto 0) := x"0105";     -- FG GFX 2
 constant C_DEV_BP_BG1_GFX2           : std_logic_vector(15 downto 0) := x"0106";     -- BG GFX 1
@@ -157,16 +157,14 @@ constant C_DEV_BP_BG4_GFX2           : std_logic_vector(15 downto 0) := x"0109";
 constant C_DEV_BP_BG5_GFX2           : std_logic_vector(15 downto 0) := x"010A";     -- BG GFX 5
 constant C_DEV_BP_BG6_GFX2           : std_logic_vector(15 downto 0) := x"010B";     -- BG GFX 6
 constant C_DEV_BP_PALETTE            : std_logic_vector(15 downto 0) := x"010C";     -- PALETTE
-constant C_DEV_BP_FGLUT_1            : std_logic_vector(15 downto 0) := x"010D";     -- FG LUT_1
-constant C_DEV_BP_FGLUT_2            : std_logic_vector(15 downto 0) := x"010E";     -- FG LUT_2
-constant C_DEV_BP_BGLUT_1            : std_logic_vector(15 downto 0) := x"010F";     -- BG LUT_1
-constant C_DEV_BP_BGLUT_2            : std_logic_vector(15 downto 0) := x"0110";     -- BG LUT_2
+constant C_DEV_BP_FGLUT              : std_logic_vector(15 downto 0) := x"010D";     -- FG LUT
+constant C_DEV_BP_BGLUT              : std_logic_vector(15 downto 0) := x"010E";     -- BG LUT
 
--- Bank Panic core specific ROMs
 constant ROM1_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6175.7e" & ENDSTR; -- z80 cpu rom 1
 constant ROM2_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6174.7f" & ENDSTR; -- z80 cpu rom 2
 constant ROM3_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6173.7h" & ENDSTR; -- z80 cpu rom 3
-constant ROM4_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6176.7d" & ENDSTR; -- z80 cpu rom 4
+--constant ROM4_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6176.7d_" & ENDSTR; -- z80 cpu rom 4 -- 16kb with 8kb padded.
+constant ROM4_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6176.7d" & ENDSTR; -- z80 cpu rom 4  - non padded 8kb binary
 constant GFX1_FG1_ROM                 : string  := "arcade/bankp/epr-6165.5l" & ENDSTR; -- Foreground tiles 1
 constant GFX1_FG2_ROM                 : string  := "arcade/bankp/epr-6166.5k" & ENDSTR; -- Foreground tiles 2
 constant GFX2_BG1_ROM                 : string  := "arcade/bankp/epr-6172.5b" & ENDSTR; -- Background tiles 1
@@ -175,44 +173,36 @@ constant GFX2_BG3_ROM                 : string  := "arcade/bankp/epr-6170.5e" & 
 constant GFX2_BG4_ROM                 : string  := "arcade/bankp/epr-6169.5f" & ENDSTR; -- Background tiles 4
 constant GFX2_BG5_ROM                 : string  := "arcade/bankp/epr-6168.5h" & ENDSTR; -- Background tiles 5
 constant GFX2_BG6_ROM                 : string  := "arcade/bankp/epr-6167.5i" & ENDSTR; -- Background tiles 6
-constant PALETTE_ROM                  : string  := "arcade/bankp/pr-6177.8a"  & ENDSTR; -- Palette rom
-constant FGLUT_ROM_1                  : string  := "arcade/bankp/fg_1"        & ENDSTR; -- Fgtile lookup table 1
-constant FGLUT_ROM_2                  : string  := "arcade/bankp/fg_2"        & ENDSTR; -- Fgtile lookup table 2
-constant BGLUT_ROM_1                  : string  := "arcade/bankp/bg_1"        & ENDSTR; -- Bgtile lookup table 1
-constant BGLUT_ROM_2                  : string  := "arcade/bankp/bg_2"        & ENDSTR; -- Bgtile lookup table 2
-
---constant FGLUT_ROM                    : string  := "arcade/bankp/pr-6178.6f"  & ENDSTR; -- Fgtile lookup table
---constant BGLUT_ROM                    : string  := "arcade/bankp/pr-6179.5a"  & ENDSTR; -- Bgtile lookup table
+constant PALETTE_ROM                  : string  := "arcade/bankp/palettep"    & ENDSTR; -- Palette rom -- padded from 0x1f-0xff
+constant FGLUT_ROM                    : string  := "arcade/bankp/pr-6178.6f"  & ENDSTR; -- Fgtile lookup table
+constant BGLUT_ROM                    : string  := "arcade/bankp/pr-6179.5a"  & ENDSTR; -- Bgtile lookup table
 
 
-constant CPU_ROM1_MAIN_START          : std_logic_vector(15 downto 0) := X"0000";
-constant CPU_ROM2_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM1_MAIN_START + ROM1_MAIN_CPU_ROM'length;
-constant CPU_ROM3_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM2_MAIN_START + ROM2_MAIN_CPU_ROM'length;
-constant CPU_ROM4_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM3_MAIN_START + ROM3_MAIN_CPU_ROM'length;
-constant GFX1_MAIN1_START             : std_logic_vector(15 downto 0) := CPU_ROM4_MAIN_START + ROM4_MAIN_CPU_ROM'length;
-constant GFX1_MAIN2_START             : std_logic_vector(15 downto 0) := GFX1_MAIN1_START    + GFX1_FG1_ROM'length;
-constant GFX2_MAIN1_START             : std_logic_vector(15 downto 0) := GFX1_MAIN2_START    + GFX1_FG2_ROM'length;
-constant GFX2_MAIN2_START             : std_logic_vector(15 downto 0) := GFX2_MAIN1_START    + GFX2_BG1_ROM'length;
-constant GFX2_MAIN3_START             : std_logic_vector(15 downto 0) := GFX2_MAIN2_START    + GFX2_BG2_ROM'length;
-constant GFX2_MAIN4_START             : std_logic_vector(15 downto 0) := GFX2_MAIN3_START    + GFX2_BG3_ROM'length;
-constant GFX2_MAIN5_START             : std_logic_vector(15 downto 0) := GFX2_MAIN4_START    + GFX2_BG4_ROM'length;
-constant GFX2_MAIN6_START             : std_logic_vector(15 downto 0) := GFX2_MAIN5_START    + GFX2_BG5_ROM'length;
-constant PALETTE_START                : std_logic_vector(15 downto 0) := GFX2_MAIN6_START    + GFX2_BG6_ROM'length;
-constant FGLUT_START_1                : std_logic_vector(15 downto 0) := PALETTE_START       + PALETTE_ROM'length;
-constant FGLUT_START_2                : std_logic_vector(15 downto 0) := FGLUT_START_1       + FGLUT_ROM_1'length;
-constant BGLUT_START_1                : std_logic_vector(15 downto 0) := FGLUT_START_2       + FGLUT_ROM_2'length;
-constant BGLUT_START_2                : std_logic_vector(15 downto 0) := BGLUT_START_1       + BGLUT_ROM_1'length;
+constant CPU_ROM1_MAIN_START          : std_logic_vector(15 downto 0) := X"0000";                                           -- 0X0000 - 0X3FFF
+constant CPU_ROM2_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM1_MAIN_START + ROM1_MAIN_CPU_ROM'length;    -- 0X4000 - 0X7FFF
+constant CPU_ROM3_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM2_MAIN_START + ROM2_MAIN_CPU_ROM'length;    -- 0X8000 - 0XBFFF
+constant CPU_ROM4_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM3_MAIN_START + ROM3_MAIN_CPU_ROM'length;    -- 0XC000 - 0XDFFF
+constant GFX1_MAIN1_START             : std_logic_vector(15 downto 0) := CPU_ROM4_MAIN_START + ROM4_MAIN_CPU_ROM'length;    --0X10000 - 0X11FFF
+constant GFX1_MAIN2_START             : std_logic_vector(15 downto 0) := GFX1_MAIN1_START    + GFX1_FG1_ROM'length;         --0X12000 - 0X13FFF
+constant GFX2_MAIN1_START             : std_logic_vector(15 downto 0) := GFX1_MAIN2_START    + GFX1_FG2_ROM'length;         --0X14000 - 0X15FFF
+constant GFX2_MAIN2_START             : std_logic_vector(15 downto 0) := GFX2_MAIN1_START    + GFX2_BG1_ROM'length;         --0X16000 - 0X17FFF
+constant GFX2_MAIN3_START             : std_logic_vector(15 downto 0) := GFX2_MAIN2_START    + GFX2_BG2_ROM'length;         --0X18000 - 0X19FFF
+constant GFX2_MAIN4_START             : std_logic_vector(15 downto 0) := GFX2_MAIN3_START    + GFX2_BG3_ROM'length;         --0X1A000 - 0X1BFFF
+constant GFX2_MAIN5_START             : std_logic_vector(15 downto 0) := GFX2_MAIN4_START    + GFX2_BG4_ROM'length;         --0X1C000 - 0X1DFFF
+constant GFX2_MAIN6_START             : std_logic_vector(15 downto 0) := GFX2_MAIN5_START    + GFX2_BG5_ROM'length;         --0X1E000 - 0X1FFFF
+-- Palette was padded to 256 bytes to make this work and subsequent LUTs moved to the nearest 0x100th
+constant PALETTE_START                : std_logic_vector(15 downto 0) := GFX2_MAIN6_START    + GFX2_BG6_ROM'length;         --0X20000 - 0X200FF - padded to 256 bytes
+constant FGLUT_START                  : std_logic_vector(15 downto 0) := PALETTE_START       + PALETTE_ROM'length;          --0X20100 - 0x201FF
+constant BGLUT_START                  : std_logic_vector(15 downto 0) := FGLUT_START         + FGLUT_ROM'length;            --0x20200 - 0x202FF
 
--- M2M framework constants
-constant C_CRTROMS_AUTO_NUM      : natural := 17;  -- Amount of automatically loadable ROMs and carts, if more than 3: also adjust CRTROM_MAN_MAX in M2M/rom/shell_vars.asm, Needs to be in sync with config.vhd. Maximum is 16
+constant C_CRTROMS_AUTO_NUM      : natural := 15;  -- Amount of automatically loadable ROMs and carts, if more than 3: also adjust CRTROM_MAN_MAX in M2M/rom/shell_vars.asm, Needs to be in sync with config.vhd. Maximum is 16
 constant C_CRTROMS_AUTO_NAMES    : string  := ROM1_MAIN_CPU_ROM & ROM2_MAIN_CPU_ROM & ROM3_MAIN_CPU_ROM & ROM4_MAIN_CPU_ROM &
                                               GFX1_FG1_ROM & GFX1_FG2_ROM &
                                               GFX2_BG1_ROM & GFX2_BG2_ROM & GFX2_BG3_ROM & GFX2_BG4_ROM & GFX2_BG5_ROM & GFX2_BG6_ROM &
-                                              PALETTE_ROM & 
-                                              FGLUT_ROM_1 & FGLUT_ROM_2 &
-                                              BGLUT_ROM_1 & BGLUT_ROM_2 &
+                                              PALETTE_ROM &
+                                              FGLUT_ROM & BGLUT_ROM &
                                               ENDSTR;
-                                              
+
 constant C_CRTROMS_AUTO          : crtrom_buf_array := ( 
       C_CRTROMTYPE_DEVICE, C_DEV_BP_CPU_ROM1, C_CRTROMTYPE_MANDATORY, CPU_ROM1_MAIN_START,
       C_CRTROMTYPE_DEVICE, C_DEV_BP_CPU_ROM2, C_CRTROMTYPE_MANDATORY, CPU_ROM2_MAIN_START,
@@ -227,10 +217,8 @@ constant C_CRTROMS_AUTO          : crtrom_buf_array := (
       C_CRTROMTYPE_DEVICE, C_DEV_BP_BG5_GFX2, C_CRTROMTYPE_MANDATORY, GFX2_MAIN5_START,
       C_CRTROMTYPE_DEVICE, C_DEV_BP_BG6_GFX2, C_CRTROMTYPE_MANDATORY, GFX2_MAIN6_START,
       C_CRTROMTYPE_DEVICE, C_DEV_BP_PALETTE,  C_CRTROMTYPE_MANDATORY, PALETTE_START,
-      C_CRTROMTYPE_DEVICE, C_DEV_BP_FGLUT_1,  C_CRTROMTYPE_MANDATORY, FGLUT_START_1,
-      C_CRTROMTYPE_DEVICE, C_DEV_BP_FGLUT_2,  C_CRTROMTYPE_MANDATORY, FGLUT_START_2,
-      C_CRTROMTYPE_DEVICE, C_DEV_BP_BGLUT_1,  C_CRTROMTYPE_MANDATORY, BGLUT_START_1,
-      C_CRTROMTYPE_DEVICE, C_DEV_BP_BGLUT_2,  C_CRTROMTYPE_MANDATORY, BGLUT_START_2,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_FGLUT,    C_CRTROMTYPE_MANDATORY, FGLUT_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_BGLUT,    C_CRTROMTYPE_MANDATORY, BGLUT_START,
                                                          x"EEEE");                     -- Always finish the array using x"EEEE"
 
 
