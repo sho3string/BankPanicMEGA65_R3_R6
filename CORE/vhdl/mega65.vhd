@@ -320,7 +320,7 @@ begin
    -- Configure the LEDs:
    -- Power led on and green, drive led always off
    main_power_led_o       <= '1';
-   --main_power_led_col_o   <= x"00FF00";
+   main_power_led_col_o   <= x"00FF00";
    main_drive_led_o       <= '0';
    main_drive_led_col_o   <= x"00FF00"; 
    
@@ -542,158 +542,10 @@ begin
         rom_download <= '1';
         main_power_led_col_o   <= x"FF0000";
       end if;
-    
+     
       
       case qnice_dev_id_i is
-      
-      /******** LOAD ROMs ********/
-
-/*wire [7:0]  mcpu_rom_data     = ioctl_dout[7:0];
-wire [13:0] mcpu_rom0_addr    = ioctl_download ? ioctl_addr : mcpu_addr[13:0];
-wire        mcpu_rom0_wren_a  = ioctl_download && ioctl_addr < 27'h4000 ? ioctl_wr : 1'b0;
-wire [13:0] mcpu_rom1_addr    = ioctl_download ? ioctl_addr : mcpu_addr[13:0];
-wire        mcpu_rom1_wren_a  = ioctl_download && ioctl_addr < 27'h8000 ? ioctl_wr : 1'b0;
-wire [13:0] mcpu_rom2_addr    = ioctl_download ? ioctl_addr : mcpu_addr[13:0];
-wire        mcpu_rom2_wren_a  = ioctl_download && ioctl_addr < 27'hc000 ? ioctl_wr : 1'b0;
-wire [13:0] mcpu_rom3_addr    = ioctl_download ? ioctl_addr : mcpu_addr[13:0];
-wire        mcpu_rom3_wren_a  = ioctl_download && ioctl_addr < 27'hf000 ? ioctl_wr : 1'b0;*/
-
-        
-         -- Bank Panic ROMs
-        when C_DEV_BP_CPU_ROM1 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(15 downto 0) <= "00" & qnice_dev_addr_i(13 downto 0);   -- 0000000000000000 - 0011111111111111 [ 0x0000 - 0x3fff ]
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);
-
-         when C_DEV_BP_CPU_ROM2 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(15 downto 0) <= "01" & qnice_dev_addr_i(13 downto 0);   -- 0100000000000000 - 0111111111111111 [ 0x4000 - 0x7fff ]
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);
-              
-         when C_DEV_BP_CPU_ROM3 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(15 downto 0) <= "10" & qnice_dev_addr_i(13 downto 0);   -- 1000000000000000 - 1011111111111111 [ 0x8000 - 0xBfff ]
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);     
-         
-         -- 0xc000 - 110 0000000000000
-         -- 0xdfff - 110 0111111111111
-         when C_DEV_BP_CPU_ROM4 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              --qnice_dn_addr(15 downto 0) <= "11" & qnice_dev_addr_i(13 downto 0);   -- 1100000000000000 - 1111111111111111 [ 0xC000 - 0xefff ]
-              qnice_dn_addr(15 downto 0) <= "110" & qnice_dev_addr_i(12 downto 0);    -- 1100000000000000 - 1101111111111111 [ 0xC000 - 0xdfff ]
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);   
-              
-        
-/*wire [7:0]  gfx_rom_data     = ioctl_dout;
-wire [12:0] gfx_rom1_addr    = ioctl_download ? ioctl_addr - 27'h10000 : rca[12:0];
-wire        gfx_rom1_wren_a  = ioctl_download && ioctl_addr >= 27'h10000 && ioctl_addr < 27'h12000 ? ioctl_wr : 1'b0;
-wire [12:0] gfx_rom2_addr    = ioctl_download ? ioctl_addr - 27'h12000 : rca[12:0];
-wire        gfx_rom2_wren_a  = ioctl_download && ioctl_addr >= 27'h12000 && ioctl_addr < 27'h14000 ? ioctl_wr : 1'b0;
-wire [12:0] gfx_rom3_addr    = ioctl_download ? ioctl_addr - 27'h14000 : sca[12:0];
-wire        gfx_rom3_wren_a  = ioctl_download && ioctl_addr >= 27'h14000 && ioctl_addr < 27'h16000 ? ioctl_wr : 1'b0;
-wire [12:0] gfx_rom4_addr    = ioctl_download ? ioctl_addr - 27'h16000 : sca[12:0];
-wire        gfx_rom4_wren_a  = ioctl_download && ioctl_addr >= 27'h16000 && ioctl_addr < 27'h18000 ? ioctl_wr : 1'b0;
-wire [12:0] gfx_rom5_addr    = ioctl_download ? ioctl_addr - 27'h18000 : sca[12:0];
-wire        gfx_rom5_wren_a  = ioctl_download && ioctl_addr >= 27'h18000 && ioctl_addr < 27'h1a000 ? ioctl_wr : 1'b0;
-wire [12:0] gfx_rom6_addr    = ioctl_download ? ioctl_addr - 27'h1a000 : sca[12:0];
-wire        gfx_rom6_wren_a  = ioctl_download && ioctl_addr >= 27'h1a000 && ioctl_addr < 27'h1c000 ? ioctl_wr : 1'b0;
-wire [12:0] gfx_rom7_addr    = ioctl_download ? ioctl_addr - 27'h1c000 : sca[12:0];
-wire        gfx_rom7_wren_a  = ioctl_download && ioctl_addr >= 27'h1c000 && ioctl_addr < 27'h1e000 ? ioctl_wr : 1'b0;
-wire [12:0] gfx_rom8_addr    = ioctl_download ? ioctl_addr - 27'h1e000 : sca[12:0];
-wire        gfx_rom8_wren_a  = ioctl_download && ioctl_addr >= 27'h1e000 && ioctl_addr < 27'h20000 ? ioctl_wr : 1'b0; */            
-         
-          
-         when C_DEV_BP_FG1_GFX1 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(16 downto 0) <= "1000" & qnice_dev_addr_i(12 downto 0);   -- 0001000 0000000000000 - 0001000 1111111111111
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);
-         
-         when C_DEV_BP_FG2_GFX1 =>
-              qnice_dn_wr  <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(16 downto 0) <= "1001" & qnice_dev_addr_i(12 downto 0);   -- 0001001 0000000000000 - 0001001 1111111111111
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0); 
-              
-         
-         when C_DEV_BP_BG1_GFX2 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(16 downto 0) <= "1010" & qnice_dev_addr_i(12 downto 0);   -- 0001010 0000000000000 - 0001010 1111111111111
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0); 
-              
-         when C_DEV_BP_BG2_GFX2 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(16 downto 0) <= "1011" & qnice_dev_addr_i(12 downto 0);   -- 0001011 0000000000000 - 0001011 1111111111111
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);
-              
-         when C_DEV_BP_BG3_GFX2 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(16 downto 0) <= "1100" & qnice_dev_addr_i(12 downto 0);   -- 0001100 0000000000000 - 0001100 1111111111111
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);
-              
-         when C_DEV_BP_BG4_GFX2 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(16 downto 0) <= "1101" & qnice_dev_addr_i(12 downto 0);   -- 0001101 0000000000000 - 0001101 1111111111111
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);   
-         
-         when C_DEV_BP_BG5_GFX2 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(16 downto 0) <= "1110" & qnice_dev_addr_i(12 downto 0);   -- 0001110 0000000000000 - 0001110 1111111111111
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);  
-              
-         when C_DEV_BP_BG6_GFX2 =>
-              qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-              qnice_dn_addr(16 downto 0) <= "1111" & qnice_dev_addr_i(12 downto 0);   -- 0001111 0000000000000 - 0001111 1111111111111
-              qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);
-        
---wire [7:0]  col_data      = ioctl_dout;
---wire [7:0]  fg_color_addr = ioctl_download ? ioctl_addr - 27'h20020 : rc_addr;
---wire        fg_color_wren = ioctl_download && ioctl_addr >= 27'h20020 && ioctl_addr < 27'h20120 ? ioctl_wr : 1'b0;
---wire [7:0]  bg_color_addr = ioctl_download ? ioctl_addr - 27'h20120 : sc_addr;
---wire        bg_color_wren = ioctl_download && ioctl_addr >= 27'h20120 && ioctl_addr < 27'h20220 ? ioctl_wr : 1'b0;
---wire [4:0]  pal_addr      = ioctl_download ? ioctl_addr - 27'h20000 : { back, col };
---wire        pal_wren      = ioctl_download && ioctl_addr >= 27'h20000 && ioctl_addr < 27'h20020 ? ioctl_wr : 1'b0;
-        
-        
-        
-        -- palette - Original MiSTEr core
-        -- 0x20000 - 001000000000000 00000
-        -- 0x2001f - 001000000000000 11111
-        
-        -- palette - Padded version
-        -- 0x20000 - 001000000000 00000000
-        -- 0x200ff - 001000000000 11111111
-        
-        when C_DEV_BP_PALETTE =>
-            qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-            --qnice_dn_addr(17 downto 0) <= "1000000000000" & qnice_dev_addr_i(4 downto 0); - 0x00-0x1f
-            qnice_dn_addr(17 downto 0) <= "1000000000" & qnice_dev_addr_i(7 downto 0);
-            qnice_dn_data(7 downto 0) <= qnice_dev_data_i(7 downto 0);        
-            
-         -- fg lut - Original MiSTer core
-         -- 0x20020 - 001000000000 00100000
-         -- 0x2011f - 001000000001 00011111
-         
-         -- fg lut - Our version as a result of padding the palette
-         -- 0x20100 - 001000000001 00000000
-         -- 0x201ff - 001000000001 11111111
-         
-         when C_DEV_BP_FGLUT => 
-            qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-            qnice_dn_addr(17 downto 0) <= "1000000001" & qnice_dev_addr_i(7 downto 0); 
-            qnice_dn_data(3 downto 0) <= qnice_dev_data_i(3 downto 0);
-
-         -- fg lut  - Original MiSTer core
-         -- 0x20120 - 001000000001 00100000
-         -- 0x2011f - 001000000010 00011111
-         
-         -- bg lut - Our version as a result of padding the palette
-         -- 0x20200 - 001000000010 00000000
-         -- 0x202ff - 001000000010 11111111
-         
-         when C_DEV_BP_BGLUT => 
-            qnice_dn_wr   <= qnice_dev_ce_i and qnice_dev_we_i;
-            qnice_dn_addr(17 downto 0) <= "1000000010" & qnice_dev_addr_i(7 downto 0); 
-            qnice_dn_data(3 downto 0) <= qnice_dev_data_i(3 downto 0);
-         
+     
          when others => null;
       end case;
       
