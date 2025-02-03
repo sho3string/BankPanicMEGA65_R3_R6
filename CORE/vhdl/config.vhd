@@ -79,18 +79,16 @@ constant SCR_WELCOME : string :=
    "Bank Panic V0.5.0 (beta)\n"           &
    "------------------------\n"           &
    "\n"                                   &
-   "Port by Muse in 2023\n\n"             &
+   "Port by Muse in 2024\n\n"             &
 
    -- We are not insisting. But it would be nice if you gave us credit for MiSTer2MEGA65 by leaving these lines in
    "Powered by MiSTer2MEGA65\n"           &
-   "sy2002 & MJoergen in 2022\n"          &
+   "sy2002 & MJoergen in 2024\n"          &
    "\n\n"                                 &
    "Credits :Press '5' or '6'\n"          & 
    "Start   :Press '1' or '2'\n"          &
    "Pause   :Press 'p'\n"                 &
    "Controls:Arrows & z,x & c\n"          &
-   "Svc 1   :Press 's' \n"                &
-   "Svc Mode:Caps-Lock on\n"              &
    "\n\n Press Space to continue.\n"; 
    
 constant HELP_1 : string :=
@@ -267,7 +265,7 @@ constant SEL_CORENAME      : std_logic_vector(15 downto 0) := x"0200";
 -- START YOUR CONFIGURATION BELOW THIS LINE
 
 -- Currently this is only used in the debug console. Use the welcome screen and the
--- help system to display the name and version of the Galaga core to the end user
+-- help system to display the name and version of the core to the end user
 constant CORENAME          : string := "Bank Panic V1";
 
 --------------------------------------------------------------------------------------------------------------------
