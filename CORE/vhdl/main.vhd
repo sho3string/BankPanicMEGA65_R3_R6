@@ -79,10 +79,10 @@ end entity main;
 architecture synthesis of main is
 
 signal keyboard_n        : std_logic_vector(79 downto 0);
-signal status            : signed(31 downto 0);
 signal forced_scandoubler: std_logic;
 signal gamma_bus         : std_logic_vector(21 downto 0);
 signal audio             : std_logic_vector(15 downto 0);
+signal hoffs             : std_logic_vector(4 downto 0);
 
 -- I/O board button press simulation ( active high )
 -- b[1]: user button
@@ -111,11 +111,25 @@ constant m65_c             : integer := 20; --P1 Push 3
 constant m65_s             : integer := 13; --Service 1
 constant m65_help          : integer := 67; --Help key
 
+constant C_MENU_SEGAWB_H1  : integer := 30;
+constant C_MENU_SEGAWB_H2  : integer := 31;
+constant C_MENU_SEGAWB_H4  : integer := 32;
+constant C_MENU_SEGAWB_H8  : integer := 33;
+constant C_MENU_SEGAWB_H16 : integer := 34;
+
 begin
     audio_left_o(15) <= not audio(15);
     audio_left_o(14 downto 0) <= signed(audio(14 downto 0));
     audio_right_o(15) <= not audio(15);
     audio_right_o(14 downto 0) <= signed(audio(14 downto 0));
+    
+    
+    -- video crt offsets
+    hoffs <=   osm_control_i(C_MENU_SEGAWB_H16)  &
+               osm_control_i(C_MENU_SEGAWB_H8)   &
+               osm_control_i(C_MENU_SEGAWB_H4)   &
+               osm_control_i(C_MENU_SEGAWB_H2)   &
+               osm_control_i(C_MENU_SEGAWB_H1);
   
     i_u_core : entity work.core
     port map (
@@ -169,7 +183,7 @@ begin
     hs                => video_hs_o,
     
     ce_pix            => video_ce_o,
-    hoffs             => status(27 downto 24), -- to do.
+    hoffs             => hoffs,
     sound             => audio
 );
    i_keyboard : entity work.keyboard

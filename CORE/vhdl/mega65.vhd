@@ -247,28 +247,26 @@ signal main_qnice_dev_id_i : std_logic_vector(15 downto 0);
 -- qnice_clk
 ---------------------------------------------------------------------------------------------
 
-constant C_MENU_OSMPAUSE      : natural := 2;  
-constant C_MENU_OSMDIM        : natural := 3;
-constant C_FLIP_JOYS          : natural := 4;
-constant C_MENU_CRT_EMULATION : natural := 8;
-constant C_MENU_HDMI_16_9_50  : natural := 12;
-constant C_MENU_HDMI_16_9_60  : natural := 13;
-constant C_MENU_HDMI_4_3_50   : natural := 14;
-constant C_MENU_HDMI_5_4_50   : natural := 15;
+constant C_FLIP_JOYS          : natural := 2;
+constant C_MENU_CRT_EMULATION : natural := 6;
+constant C_MENU_HDMI_16_9_50  : natural := 10;
+constant C_MENU_HDMI_16_9_60  : natural := 11;
+constant C_MENU_HDMI_4_3_50   : natural := 12;
+constant C_MENU_HDMI_5_4_50   : natural := 13;
 
-constant C_MENU_VGA_STD       : natural := 21;
-constant C_MENU_VGA_15KHZHSVS : natural := 25;
-constant C_MENU_VGA_15KHZCS   : natural := 26;
+constant C_MENU_VGA_STD       : natural := 19;
+constant C_MENU_VGA_15KHZHSVS : natural := 23;
+constant C_MENU_VGA_15KHZCS   : natural := 24;
 
 -- Dipswitch A
-constant C_MENU_DSWA_0 : natural := 33;
-constant C_MENU_DSWA_1 : natural := 34;
-constant C_MENU_DSWA_2 : natural := 35;
-constant C_MENU_DSWA_3 : natural := 36;
-constant C_MENU_DSWA_4 : natural := 37;
-constant C_MENU_DSWA_5 : natural := 38;
-constant C_MENU_DSWA_6 : natural := 39;
-constant C_MENU_DSWA_7 : natural := 40;
+constant C_MENU_DSWA_0 : natural := 41;
+constant C_MENU_DSWA_1 : natural := 42;
+constant C_MENU_DSWA_2 : natural := 43;
+constant C_MENU_DSWA_3 : natural := 44;
+constant C_MENU_DSWA_4 : natural := 45;
+constant C_MENU_DSWA_5 : natural := 46;
+constant C_MENU_DSWA_6 : natural := 47;
+constant C_MENU_DSWA_7 : natural := 48;
 
 -- BankPanic specific video processing
 signal div          : std_logic_vector(2 downto 0);
