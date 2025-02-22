@@ -9,6 +9,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD_UNSIGNED.ALL;
 
 library work;
 use work.qnice_tools.all;
@@ -40,8 +41,7 @@ constant QNICE_FIRMWARE           : string  := QNICE_FIRMWARE_M2M;
 -- then add all the clocks speeds here by adding more constants.
 ----------------------------------------------------------------------------------------------------------
 
--- @TODO: Your core's clock speed
-constant CORE_CLK_SPEED       : natural := 54_000_000;   -- @TODO YOURCORE expects 54 MHz
+constant CORE_CLK_SPEED       : natural := 36_000_000;   -- Bank Panic's main clock is 36 MHz 
 
 -- System clock speed (crystal that is driving the FPGA) and QNICE clock speed
 -- !!! Do not touch !!!
@@ -54,12 +54,9 @@ constant QNICE_CLK_SPEED      : natural := 50_000_000;   -- a change here has de
 
 -- Rendering constants (in pixels)
 --    VGA_*   size of the core's target output post scandoubler
---    If in doubt, use twice the values found in this link:
---    https://mister-devel.github.io/MkDocs_MiSTer/advanced/nativeres/#arcade-core-default-native-resolutions
-constant VGA_DX               : natural := 720;
-constant VGA_DY               : natural := 576;
-
 --    FONT_*  size of one OSM character
+constant VGA_DX               : natural := 448;
+constant VGA_DY               : natural := 448;
 constant FONT_FILE            : string  := "../font/Anikki-16x16-m2m.rom";
 constant FONT_DX              : natural := 16;
 constant FONT_DY              : natural := 16;
@@ -81,11 +78,6 @@ constant C_HMAP_DEMO          : std_logic_vector(15 downto 0) := x"0200";     --
 -- Virtual Drive Management System
 ----------------------------------------------------------------------------------------------------------
 
--- example virtual drive handler, which is connected to nothing and only here to demo
--- the file- and directory browsing capabilities of the firmware
-constant C_DEV_DEMO_VD        : std_logic_vector(15 downto 0) := x"0101";
-constant C_DEV_DEMO_NOBUFFER  : std_logic_vector(15 downto 0) := x"AAAA";
-
 -- Virtual drive management system (handled by vdrives.vhd and the firmware)
 -- If you are not using virtual drives, make sure that:
 --    C_VDNUM        is 0
@@ -94,12 +86,9 @@ constant C_DEV_DEMO_NOBUFFER  : std_logic_vector(15 downto 0) := x"AAAA";
 -- Otherwise make sure that you wire C_VD_DEVICE in the qnice_ramrom_devices process and that you
 -- have as many appropriately sized RAM buffers for disk images as you have drives
 type vd_buf_array is array(natural range <>) of std_logic_vector;
-constant C_VDNUM              : natural := 3;                                          -- amount of virtual drives; maximum is 15
-constant C_VD_DEVICE          : std_logic_vector(15 downto 0) := C_DEV_DEMO_VD;        -- device number of vdrives.vhd device
-constant C_VD_BUFFER          : vd_buf_array := (  C_DEV_DEMO_NOBUFFER,
-                                                   C_DEV_DEMO_NOBUFFER,
-                                                   C_DEV_DEMO_NOBUFFER,
-                                                   x"EEEE");                           -- Always finish the array using x"EEEE"
+constant C_VDNUM              : natural := 0;
+constant C_VD_DEVICE          : std_logic_vector(15 downto 0) := x"EEEE";
+constant C_VD_BUFFER          : vd_buf_array := (x"EEEE", x"EEEE");
 
 ----------------------------------------------------------------------------------------------------------
 -- System for handling simulated cartridges and ROM loaders
@@ -129,7 +118,7 @@ constant C_CRTROMTYPE_OPTIONAL   : std_logic_vector(15 downto 0) := x"0004";
 --       else it is a 4k window in HyperRAM or in SDRAM
 -- In case we are loading to a QNICE device, then the control and status register is located at the 4k window 0xFFFF.
 -- @TODO: See @TODO for more details about the control and status register
-constant C_CRTROMS_MAN_NUM       : natural := 0;                                       -- amount of manually loadable ROMs and carts; maximum is 16
+constant C_CRTROMS_MAN_NUM       : natural := 0;                                       -- amount of manually loadable ROMs and carts, if more than 3: also adjust CRTROM_MAN_MAX in M2M/rom/shell_vars.asm, Needs to be in sync with config.vhd. Maximum is 16
 constant C_CRTROMS_MAN           : crtrom_buf_array := ( x"EEEE", x"EEEE",
                                                          x"EEEE");                     -- Always finish the array using x"EEEE"
 
@@ -143,7 +132,7 @@ constant C_CRTROMS_MAN           : crtrom_buf_array := ( x"EEEE", x"EEEE",
 --    C_CRTROMS_AUTO_NUM  is 0
 --    C_CRTROMS_AUTO      is (x"EEEE", x"EEEE", x"EEEE", x"EEEE", x"EEEE")
 -- How to pass the filenames of the ROMs to the framework:
---    C_CRTROMS_AUTO_NAMES is a concatenation of all filenames (see config.vhd's WHS_DATA for an example of how to concatenate)
+-- C_CRTROMS_AUTO_NAMES is a concatenation of all filenames (see config.vhd's WHS_DATA for an example of how to concatenate)
 --    The start addresses of the filename can be determined similarly to how it is done in config.vhd's HELP_x_START
 --    using a concatenated addition and VHDL's string length operator.
 --    IMPORTANT: a) The framework is not doing any consistency or error check when it comes to C_CRTROMS_AUTO_NAMES, so you
@@ -151,11 +140,83 @@ constant C_CRTROMS_MAN           : crtrom_buf_array := ( x"EEEE", x"EEEE",
 --               b) Don't forget to zero-terminate each of your substrings of C_CRTROMS_AUTO_NAMES by adding "& ENDSTR;"
 --               c) Don't forget to finish the C_CRTROMS_AUTO array with x"EEEE"
 
--- M2M framework constants
-constant C_CRTROMS_AUTO_NUM      : natural := 0;                                       -- Amount of automatically loadable ROMs and carts, maximum is 16
-constant C_CRTROMS_AUTO_NAMES    : string  := "" & ENDSTR;
-constant C_CRTROMS_AUTO          : crtrom_buf_array := ( x"EEEE", x"EEEE", x"EEEE", x"EEEE",
+
+constant C_DEV_BP_CPU_ROM1           : std_logic_vector(15 downto 0) := x"0100";     -- CPU1 ROM 
+constant C_DEV_BP_CPU_ROM2           : std_logic_vector(15 downto 0) := x"0101";     -- CPU2 ROM 
+constant C_DEV_BP_CPU_ROM3           : std_logic_vector(15 downto 0) := x"0102";     -- CPU3 ROM 
+constant C_DEV_BP_CPU_ROM4           : std_logic_vector(15 downto 0) := x"0103";     -- CPU4 ROM
+constant C_DEV_BP_FG1_GFX1           : std_logic_vector(15 downto 0) := x"0104";     -- FG GFX 1
+constant C_DEV_BP_FG2_GFX1           : std_logic_vector(15 downto 0) := x"0105";     -- FG GFX 2
+constant C_DEV_BP_BG1_GFX2           : std_logic_vector(15 downto 0) := x"0106";     -- BG GFX 1
+constant C_DEV_BP_BG2_GFX2           : std_logic_vector(15 downto 0) := x"0107";     -- BG GFX 2
+constant C_DEV_BP_BG3_GFX2           : std_logic_vector(15 downto 0) := x"0108";     -- BG GFX 3
+constant C_DEV_BP_BG4_GFX2           : std_logic_vector(15 downto 0) := x"0109";     -- BG GFX 4
+constant C_DEV_BP_BG5_GFX2           : std_logic_vector(15 downto 0) := x"010A";     -- BG GFX 5
+constant C_DEV_BP_BG6_GFX2           : std_logic_vector(15 downto 0) := x"010B";     -- BG GFX 6
+constant C_DEV_BP_PALETTE            : std_logic_vector(15 downto 0) := x"010C";     -- PALETTE
+constant C_DEV_BP_FGLUT              : std_logic_vector(15 downto 0) := x"010D";     -- FG LUT 1
+constant C_DEV_BP_BGLUT              : std_logic_vector(15 downto 0) := x"010E";     -- BG LUT 1
+
+constant ROM1_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6175.7e" & ENDSTR;  -- z80 cpu rom 1
+constant ROM2_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6174.7f" & ENDSTR;  -- z80 cpu rom 2
+constant ROM3_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6173.7h" & ENDSTR;  -- z80 cpu rom 3
+constant ROM4_MAIN_CPU_ROM            : string  := "arcade/bankp/epr-6176.7d_" & ENDSTR; -- z80 cpu rom 4 -- 16kb with 8kb padded.
+constant GFX1_FG1_ROM                 : string  := "arcade/bankp/epr-6165.5l" & ENDSTR;  -- Foreground tiles 1
+constant GFX1_FG2_ROM                 : string  := "arcade/bankp/epr-6166.5k" & ENDSTR;  -- Foreground tiles 2
+constant GFX2_BG1_ROM                 : string  := "arcade/bankp/epr-6172.5b" & ENDSTR;  -- Background tiles 1
+constant GFX2_BG2_ROM                 : string  := "arcade/bankp/epr-6171.5d" & ENDSTR;  -- Background tiles 2
+constant GFX2_BG3_ROM                 : string  := "arcade/bankp/epr-6170.5e" & ENDSTR;  -- Background tiles 3
+constant GFX2_BG4_ROM                 : string  := "arcade/bankp/epr-6169.5f" & ENDSTR;  -- Background tiles 4
+constant GFX2_BG5_ROM                 : string  := "arcade/bankp/epr-6168.5h" & ENDSTR;  -- Background tiles 5
+constant GFX2_BG6_ROM                 : string  := "arcade/bankp/epr-6167.5i" & ENDSTR;  -- Background tiles 6
+constant PALETTE_ROM                  : string  := "arcade/bankp/palettep"    & ENDSTR;  -- Palette rom -- padded to 0xff
+constant FGLUT_ROM                    : string  := "arcade/bankp/pr-6178.6f"  & ENDSTR;  -- Fgtile lookup table
+constant BGLUT_ROM                    : string  := "arcade/bankp/pr-6179.5a"  & ENDSTR;  -- Bgtile lookup table
+
+
+constant CPU_ROM1_MAIN_START          : std_logic_vector(15 downto 0) := X"0000";                                           -- 0X0000 - 0X3FFF
+constant CPU_ROM2_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM1_MAIN_START + ROM1_MAIN_CPU_ROM'length;    -- 0X4000 - 0X7FFF
+constant CPU_ROM3_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM2_MAIN_START + ROM2_MAIN_CPU_ROM'length;    -- 0X8000 - 0XBFFF
+constant CPU_ROM4_MAIN_START          : std_logic_vector(15 downto 0) := CPU_ROM3_MAIN_START + ROM3_MAIN_CPU_ROM'length;    -- 0XC000 - 0XDFFF
+constant GFX1_MAIN1_START             : std_logic_vector(15 downto 0) := CPU_ROM4_MAIN_START + ROM4_MAIN_CPU_ROM'length;    --0X10000 - 0X11FFF
+constant GFX1_MAIN2_START             : std_logic_vector(15 downto 0) := GFX1_MAIN1_START    + GFX1_FG1_ROM'length;         --0X12000 - 0X13FFF
+constant GFX2_MAIN1_START             : std_logic_vector(15 downto 0) := GFX1_MAIN2_START    + GFX1_FG2_ROM'length;         --0X14000 - 0X15FFF
+constant GFX2_MAIN2_START             : std_logic_vector(15 downto 0) := GFX2_MAIN1_START    + GFX2_BG1_ROM'length;         --0X16000 - 0X17FFF
+constant GFX2_MAIN3_START             : std_logic_vector(15 downto 0) := GFX2_MAIN2_START    + GFX2_BG2_ROM'length;         --0X18000 - 0X19FFF
+constant GFX2_MAIN4_START             : std_logic_vector(15 downto 0) := GFX2_MAIN3_START    + GFX2_BG3_ROM'length;         --0X1A000 - 0X1BFFF
+constant GFX2_MAIN5_START             : std_logic_vector(15 downto 0) := GFX2_MAIN4_START    + GFX2_BG4_ROM'length;         --0X1C000 - 0X1DFFF
+constant GFX2_MAIN6_START             : std_logic_vector(15 downto 0) := GFX2_MAIN5_START    + GFX2_BG5_ROM'length;         --0X1E000 - 0X1FFFF
+constant PALETTE_START                : std_logic_vector(15 downto 0) := GFX2_MAIN6_START    + GFX2_BG6_ROM'length;         --0X20000 - 0X200FF - padded to 256 bytes
+-- Palette was padded to 256 bytes to make this work and subsequent LUTs moved to the nearest 0x100th to simplify mapping and avoid overlap
+constant FGLUT_START                  : std_logic_vector(15 downto 0) := PALETTE_START       + PALETTE_ROM'length;          --
+constant BGLUT_START                  : std_logic_vector(15 downto 0) := FGLUT_START         + FGLUT_ROM'length;            --
+
+constant C_CRTROMS_AUTO_NUM      : natural := 15;  -- Amount of automatically loadable ROMs and carts, if more than 3: also adjust CRTROM_MAN_MAX in M2M/rom/shell_vars.asm, Needs to be in sync with config.vhd. Maximum is 16
+constant C_CRTROMS_AUTO_NAMES    : string  := ROM1_MAIN_CPU_ROM & ROM2_MAIN_CPU_ROM & ROM3_MAIN_CPU_ROM & ROM4_MAIN_CPU_ROM &
+                                              GFX1_FG1_ROM & GFX1_FG2_ROM &
+                                              GFX2_BG1_ROM & GFX2_BG2_ROM & GFX2_BG3_ROM & GFX2_BG4_ROM & GFX2_BG5_ROM & GFX2_BG6_ROM &
+                                              PALETTE_ROM &
+                                              FGLUT_ROM & BGLUT_ROM &
+                                              ENDSTR;
+
+constant C_CRTROMS_AUTO          : crtrom_buf_array := ( 
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_CPU_ROM1, C_CRTROMTYPE_MANDATORY, CPU_ROM1_MAIN_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_CPU_ROM2, C_CRTROMTYPE_MANDATORY, CPU_ROM2_MAIN_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_CPU_ROM3, C_CRTROMTYPE_MANDATORY, CPU_ROM3_MAIN_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_CPU_ROM4, C_CRTROMTYPE_MANDATORY, CPU_ROM4_MAIN_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_FG1_GFX1, C_CRTROMTYPE_MANDATORY, GFX1_MAIN1_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_FG2_GFX1, C_CRTROMTYPE_MANDATORY, GFX1_MAIN2_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_BG1_GFX2, C_CRTROMTYPE_MANDATORY, GFX2_MAIN1_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_BG2_GFX2, C_CRTROMTYPE_MANDATORY, GFX2_MAIN2_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_BG3_GFX2, C_CRTROMTYPE_MANDATORY, GFX2_MAIN3_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_BG4_GFX2, C_CRTROMTYPE_MANDATORY, GFX2_MAIN4_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_BG5_GFX2, C_CRTROMTYPE_MANDATORY, GFX2_MAIN5_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_BG6_GFX2, C_CRTROMTYPE_MANDATORY, GFX2_MAIN6_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_PALETTE,  C_CRTROMTYPE_MANDATORY, PALETTE_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_FGLUT,    C_CRTROMTYPE_MANDATORY, FGLUT_START,
+      C_CRTROMTYPE_DEVICE, C_DEV_BP_BGLUT,    C_CRTROMTYPE_MANDATORY, BGLUT_START,
                                                          x"EEEE");                     -- Always finish the array using x"EEEE"
+
 
 ----------------------------------------------------------------------------------------------------------
 -- Audio filters
