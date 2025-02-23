@@ -141,18 +141,18 @@ begin
     p1(6)             => '0',                           -- ssw / service.
     p1(5)             => not keyboard_n(m65_5),         -- coin1
     p1(4)             => not keyboard_n(m65_z),         -- p1_push1
-    p1(3)             => not keyboard_n(m65_left_crsr), -- p1_left
+    p1(3)             => not keyboard_n(m65_left_crsr) or not joy_1_left_n_i,     -- p1_left
     p1(2)             => '0',                           -- unused
-    p1(1)             => not keyboard_n(m65_horz_crsr), -- p1_right
+    p1(1)             => not keyboard_n(m65_horz_crsr) or not joy_1_right_n_i,    -- p1_right
     p1(0)             => '0',                           -- unused
     
     p2(7)             => not keyboard_n(m65_x),         -- p2_push2 / cocktail
     p2(6)             => not keyboard_n(m65_2),         -- p2_sel
     p2(5)             => not keyboard_n(m65_1),         -- p1_sel
     p2(4)             => not keyboard_n(m65_z),         -- p2_push1 / cocktail
-    p2(3)             => not keyboard_n(m65_left_crsr), -- p2_left
+    p2(3)             => not keyboard_n(m65_left_crsr)  or not joy_2_left_n_i,     -- p2_left
     p2(2)             => '0',                           -- unused
-    p2(1)             => not keyboard_n(m65_horz_crsr), -- p2_right
+    p2(1)             => not keyboard_n(m65_horz_crsr)  or not joy_2_right_n_i,    -- p2_right
     p2(0)             => '0',                           -- unused
     
     p3(7)             => '0',                           -- unused
