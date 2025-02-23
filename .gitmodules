@@ -1,6 +1,3 @@
 [submodule "QNICE"]
 	path = M2M/QNICE
 	url = https://github.com/sy2002/QNICE-FPGA
-[submodule "Arcade-BankPanic_MiSTer"]
-	path = Arcade-BankPanic_MiSTer
-	url = G:\\GitHub\\BankPanicMEGA65_R3_R6\\CORE\\Arcade-BankPanic_MiSTer
