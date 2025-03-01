@@ -298,6 +298,58 @@ signal qnice_dn_wr      : std_logic;
 signal rom_download   : std_logic := '0';
 
 begin
+    
+   hr_core_write_o      <= '0';
+   hr_core_read_o       <= '0';
+   hr_core_address_o    <= (others => '0');
+   hr_core_writedata_o  <= (others => '0');
+   hr_core_byteenable_o <= (others => '0');
+   hr_core_burstcount_o <= (others => '0');
+
+   -- Tristate all expansion port drivers that we can directly control
+   -- @TODO: As soon as we support modules that can act as busmaster, we need to become more flexible here
+   cart_ctrl_oe_o       <= '0';
+   cart_addr_oe_o       <= '0';
+   cart_data_oe_o       <= '0';
+   
+   -- Due to a bug in the R5/R6 boards, the cartridge port needs to be enabled for joystick port 2 to work 
+   cart_en_o <= '1' when (G_BOARD = "MEGA65_R6") or (G_BOARD = "MEGA65_R5") else '0';
+   
+   cart_reset_oe_o      <= '0';
+   cart_game_oe_o       <= '0';
+   cart_exrom_oe_o      <= '0';
+   cart_nmi_oe_o        <= '0';
+   cart_irq_oe_o        <= '0';
+   cart_roml_oe_o       <= '0';
+   cart_romh_oe_o       <= '0';
+   
+    -- Default values for all signals
+   cart_phi2_o          <= '0';
+   cart_reset_o         <= '1';
+   cart_dotclock_o      <= '0';
+   cart_game_o          <= '1';
+   cart_exrom_o         <= '1';
+   cart_nmi_o           <= '1';
+   cart_irq_o           <= '1';
+   cart_roml_o          <= '0';
+   cart_romh_o          <= '0';
+   cart_ba_o            <= '0';
+   cart_rw_o            <= '0';
+   cart_io1_o           <= '0';
+   cart_io2_o           <= '0';
+   cart_a_o             <= (others => '0');
+   cart_d_o             <= (others => '0');
+   
+   main_joy_1_up_n_o    <= '1';
+   main_joy_1_down_n_o  <= '1';
+   main_joy_1_left_n_o  <= '1';
+   main_joy_1_right_n_o <= '1';
+   main_joy_1_fire_n_o  <= '1';
+   main_joy_2_up_n_o    <= '1';
+   main_joy_2_down_n_o  <= '1';
+   main_joy_2_left_n_o  <= '1';
+   main_joy_2_right_n_o <= '1';
+   main_joy_2_fire_n_o  <= '1';
 
    -- Configure the LEDs:
    -- Power led on and green, drive led always off
